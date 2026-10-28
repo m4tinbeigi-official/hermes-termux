@@ -1,8 +1,8 @@
 #!/bin/bash
 # ==============================================================================
-# 🚀 Mr Hermes & 9Router Ultimate Android Termux Installer
+# 🚀 Mr Hermes & 9Router Ultimate Android Termux Installer (v3 Pro)
 # Repository: https://github.com/m4tinbeigi-official/hermes-termux
-# Fully Autonomous · Self-Healing · 1-Tap Widget & Boot Support · Zero Friction
+# Fully Autonomous · Self-Healing · Cloud Tunnel · TUI Menu · Zero Friction
 # ==============================================================================
 
 set -euo pipefail
@@ -27,12 +27,12 @@ cat << "BANNER"
  | |  | | |_    | |  | |  __/ |  | | | | | |  __/\__ \
  |_|  |_|_(_)   |_|  |_|\___|_|  |_| |_| |_|\___||___/
                                                       
-   📱 Ultimate Android Termux AI Brain & Stack Engine
+   📱 Ultimate Android Termux AI Brain & Stack Engine (v3 Pro)
    9Router (20128) + Hermes Agent CLI + Mr Hermes WebUI (8787)
 BANNER
 echo -e "${RESET}"
 
-echo -e "${BLUE}[1/5] 🛡️  Optimizing Android Runtime & Wake Lock...${RESET}"
+echo -e "${BLUE}[1/6] 🛡️  Optimizing Android Runtime & Wake Lock...${RESET}"
 # Acquire wake lock so Android Doze doesn't sleep the installer or servers
 if command -v termux-wake-lock >/dev/null 2>&1; then
     termux-wake-lock || true
@@ -48,14 +48,14 @@ fi
 ARCH=$(uname -m)
 echo -e "${GREEN}[✓] Device Architecture: ${ARCH}${RESET}"
 
-echo -e "\n${BLUE}[2/5] 📦 Updating Termux Base Packages & proot-distro...${RESET}"
+echo -e "\n${BLUE}[2/6] 📦 Updating Termux Base Packages & Tools...${RESET}"
 export DEBIAN_FRONTEND=noninteractive
 if command -v pkg >/dev/null 2>&1; then
     pkg update -y -o Dpkg::Options::="--force-confold" || true
-    pkg install -y proot-distro git curl wget nano jq lsof tar bc procps -o Dpkg::Options::="--force-confold"
+    pkg install -y proot-distro git curl wget nano jq lsof tar bc procps qrencode -o Dpkg::Options::="--force-confold"
 fi
 
-echo -e "\n${BLUE}[3/5] 🐧 Provisioning High-Performance Ubuntu Linux Environment...${RESET}"
+echo -e "\n${BLUE}[3/6] 🐧 Provisioning High-Performance Ubuntu Linux Environment...${RESET}"
 if ! proot-distro list 2>/dev/null | grep -q "ubuntu.*installed"; then
     echo -e "${CYAN}[*] Downloading Ubuntu RootFS image (one-time fast setup)...${RESET}"
     proot-distro install ubuntu
@@ -83,7 +83,7 @@ export DEBIAN_FRONTEND=noninteractive
 apt-get update -y
 apt-get install -y --no-install-recommends \
     curl wget git build-essential python3 python3-pip python3-venv \
-    sqlite3 tmux nano procps ca-certificates gnupg lsof psmisc bc net-tools
+    sqlite3 tmux nano procps ca-certificates gnupg lsof psmisc bc net-tools qrencode
 
 # Install Node.js 20 LTS (Official NodeSource Node.js)
 if ! command -v node >/dev/null 2>&1 || [ "$(node -v | cut -d'.' -f1 | tr -d 'v')" -lt 18 ]; then
@@ -100,8 +100,8 @@ echo -e "${GREEN}[✓] Node.js $(node -v) & npm $(npm -v) installed.${RESET}"
 echo -e "${BLUE}[*] Installing 9Router AI Gateway globally...${RESET}"
 npm install -g 9router --silent || npm install -g 9router
 
-# Pre-seed 9Router Database
-echo -e "${BLUE}[*] Initializing 9Router SQLite Database with Admin Key...${RESET}"
+# Pre-seed 9Router Database (apiKeys & combos)
+echo -e "${BLUE}[*] Initializing 9Router SQLite Database with Admin Key & Combos...${RESET}"
 mkdir -p /root/.9router/db
 sqlite3 /root/.9router/db/data.sqlite << 'SQL_EOF'
 CREATE TABLE IF NOT EXISTS apiKeys (
@@ -116,6 +116,17 @@ CREATE TABLE IF NOT EXISTS apiKeys (
 );
 INSERT OR IGNORE INTO apiKeys (id, key, name, machineId, isActive, createdAt, accessRestricted, accessAllow) 
 VALUES ('key-admin', 'sk-9router-admin', 'Mr Hermes Admin', 'termux-android', 1, datetime('now'), 0, '[]');
+
+CREATE TABLE IF NOT EXISTS combos (
+    id TEXT PRIMARY KEY,
+    name TEXT UNIQUE NOT NULL,
+    kind TEXT,
+    models TEXT NOT NULL,
+    createdAt TEXT NOT NULL,
+    updatedAt TEXT NOT NULL
+);
+INSERT OR IGNORE INTO combos (id, name, kind, models, createdAt, updatedAt)
+VALUES ('combo-mrhermes', 'MrHermes', 'fallback', '["custom:9router/auto","gemini-2.5-flash","claude-3-5-sonnet"]', datetime('now'), datetime('now'));
 SQL_EOF
 
 # Install Hermes Agent CLI
@@ -234,21 +245,18 @@ echo -e "${CYAN}${BOLD}╔══════════════════
 echo -e "${CYAN}${BOLD}║           📊 Mr Hermes Android Stack Diagnostics             ║${RESET}"
 echo -e "${CYAN}${BOLD}╚══════════════════════════════════════════════════════════════╝${RESET}"
 
-# 9Router Check
 if lsof -Pi :20128 -sTCP:LISTEN -t >/dev/null 2>&1; then
     echo -e "  • 9Router Gateway (Port 20128)  : ${GREEN}${BOLD}ONLINE ✓${RESET}"
 else
     echo -e "  • 9Router Gateway (Port 20128)  : ${RED}${BOLD}OFFLINE ✗${RESET}"
 fi
 
-# WebUI Check
 if lsof -Pi :8787 -sTCP:LISTEN -t >/dev/null 2>&1; then
     echo -e "  • Mr Hermes WebUI (Port 8787)   : ${GREEN}${BOLD}ONLINE ✓${RESET}"
 else
     echo -e "  • Mr Hermes WebUI (Port 8787)   : ${RED}${BOLD}OFFLINE ✗${RESET}"
 fi
 
-# Hermes CLI Check
 if [ -f "/root/.hermes/bin/hermes" ] || command -v hermes >/dev/null 2>&1; then
     echo -e "  • Hermes Agent Core Engine      : ${GREEN}${BOLD}INSTALLED ✓${RESET}"
 else
@@ -263,15 +271,12 @@ chmod +x /usr/local/bin/hermes-stack-status
 # 4. Self-Healing Watchdog Daemon
 cat << 'WATCHDOG_CMD' > /usr/local/bin/hermes-watchdog
 #!/bin/bash
-# Checks health every 30 seconds and revives any dead daemon
 echo "[*] Hermes Self-Healing Watchdog activated in background."
 while true; do
     if ! lsof -Pi :20128 -sTCP:LISTEN -t >/dev/null 2>&1; then
-        echo "[!] 9Router down, restarting..."
         nohup 9router > /root/9router.log 2>&1 &
     fi
     if ! lsof -Pi :8787 -sTCP:LISTEN -t >/dev/null 2>&1; then
-        echo "[!] WebUI down, restarting..."
         cd /root/hermes-webui && nohup /root/hermes-webui/.venv/bin/python3 server.py > /root/webui.log 2>&1 &
     fi
     sleep 30
@@ -284,10 +289,18 @@ INNER_EOF
 
 chmod +x "$UBUNTU_ROOTFS$INNER_SETUP"
 
-echo -e "\n${BLUE}[4/5] ⚙️  Executing Stack Scaffolding inside Ubuntu...${RESET}"
+echo -e "\n${BLUE}[4/6] ⚙️  Executing Stack Scaffolding inside Ubuntu...${RESET}"
 proot-distro login ubuntu -- bash "$INNER_SETUP"
 
-echo -e "\n${BLUE}[5/5] 📲 Injecting Android Shortcuts, Auto-Boot & Termux Widgets...${RESET}"
+echo -e "\n${BLUE}[5/6] ☁️  Setting up Cloudflare Tunnel (Remote Sharing Engine)...${RESET}"
+CF_BIN="$PREFIX/bin/cloudflared"
+if [ ! -f "$CF_BIN" ]; then
+    echo -e "${CYAN}[*] Downloading static cloudflared binary for remote access...${RESET}"
+    curl -fsSL "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-arm64" -o "$CF_BIN" 2>/dev/null || true
+    chmod +x "$CF_BIN" 2>/dev/null || true
+fi
+
+echo -e "\n${BLUE}[6/6] 📲 Injecting Android Shortcuts, Auto-Boot & Termux Widgets...${RESET}"
 mkdir -p "$PREFIX/bin"
 
 # 1. hermes-start
@@ -295,7 +308,6 @@ cat << 'EOF' > "$PREFIX/bin/hermes-start"
 #!/data/data/com.termux/files/usr/bin/bash
 termux-wake-lock 2>/dev/null || true
 proot-distro login ubuntu -- hermes-stack-start
-# Start watchdog in background
 nohup proot-distro login ubuntu -- hermes-watchdog > /dev/null 2>&1 &
 echo -e "\033[1;32m[✓] Stack & Self-Healing Watchdog are ACTIVE.\033[0m"
 EOF
@@ -305,6 +317,7 @@ chmod +x "$PREFIX/bin/hermes-start"
 cat << 'EOF' > "$PREFIX/bin/hermes-stop"
 #!/data/data/com.termux/files/usr/bin/bash
 proot-distro login ubuntu -- hermes-stack-stop
+pkill -f "cloudflared tunnel" 2>/dev/null || true
 EOF
 chmod +x "$PREFIX/bin/hermes-stop"
 
@@ -373,7 +386,103 @@ echo -e "\033[1;32m[✓] Stack updated and restarted successfully!\033[0m"
 EOF
 chmod +x "$PREFIX/bin/hermes-update"
 
-# 8. Setup Termux:Boot (Auto-start on Android Phone Boot)
+# 8. hermes-share / hermes-tunnel (Cloudflare tunnel for PC/Tablet access)
+cat << 'EOF' > "$PREFIX/bin/hermes-share"
+#!/data/data/com.termux/files/usr/bin/bash
+TUNNEL_LOG="/tmp/hermes_cf_tunnel.log"
+rm -f "$TUNNEL_LOG"
+echo -e "\033[1;36m[*] Establishing secure HTTPS Cloudflare tunnel for port 8787...\033[0m"
+pkill -f "cloudflared tunnel" 2>/dev/null || true
+cloudflared tunnel --url http://127.0.0.1:8787 > "$TUNNEL_LOG" 2>&1 &
+
+URL=""
+for i in {1..20}; do
+    sleep 1
+    if [ -f "$TUNNEL_LOG" ]; then
+        URL=$(grep -o 'https://[-a-zA-Z0-9.]*trycloudflare\.com' "$TUNNEL_LOG" | head -n 1 || true)
+        if [ -n "$URL" ]; then break; fi
+    fi
+    echo -n "."
+done
+echo ""
+
+if [ -n "$URL" ]; then
+    echo -e "\n\033[1;32m════════════════════════════════════════════════════════════════\033[0m"
+    echo -e "\033[1;32m✨ Cloud Tunnel LIVE! Access from any Laptop or Tablet:\033[0m"
+    echo -e "   👉 \033[1;36m$URL\033[0m"
+    echo -e "\033[1;32m════════════════════════════════════════════════════════════════\033[0m"
+    if command -v qrencode >/dev/null 2>&1; then
+        echo -e "\n\033[1mScan to open on Laptop / Tablet / iPad:\033[0m\n"
+        qrencode -t ANSIUTF8 "$URL"
+    fi
+    echo -e "\n\033[1;33mPress Ctrl+C to close the remote tunnel when finished.\033[0m\n"
+    tail -f "$TUNNEL_LOG" | grep -v "failed" || true
+else
+    echo -e "\033[1;31m[!] Tunnel initialization timeout. Check internet connection.\033[0m"
+fi
+EOF
+chmod +x "$PREFIX/bin/hermes-share"
+
+# 9. hermes-menu (Interactive Cyberpunk Dashboard)
+cat << 'EOF' > "$PREFIX/bin/hermes-menu"
+#!/data/data/com.termux/files/usr/bin/bash
+while true; do
+    clear 2>/dev/null || true
+    echo -e "\033[1;36m"
+    cat << "BANNER"
+  __  __         _    _                               
+ |  \/  |       | |  | |                              
+ | \  / |_ __   | |__| | ___ _ __ _ __ ___   ___  ___ 
+ | |\/| | '__|  |  __  |/ _ \ '__| '_ ` _ \ / _ \/ __|
+ | |  | | |_    | |  | |  __/ |  | | | | | |  __/\__ \
+ |_|  |_|_(_)   |_|  |_|\___|_|  |_| |_| |_|\___||___/
+BANNER
+    echo -e "\033[0m"
+
+    WEB_STATUS="\033[1;31mOFFLINE ✗\033[0m"
+    ROUTER_STATUS="\033[1;31mOFFLINE ✗\033[0m"
+    if lsof -Pi :8787 -sTCP:LISTEN -t >/dev/null 2>&1; then
+        WEB_STATUS="\033[1;32mONLINE :8787 ✓\033[0m"
+    fi
+    if lsof -Pi :20128 -sTCP:LISTEN -t >/dev/null 2>&1; then
+        ROUTER_STATUS="\033[1;32mONLINE :20128 ✓\033[0m"
+    fi
+
+    echo -e "  ┌────────────────────────────────────────────────────────────┐"
+    echo -e "  │  WebUI: $WEB_STATUS     9Router: $ROUTER_STATUS  │"
+    echo -e "  └────────────────────────────────────────────────────────────┘"
+    echo -e ""
+    echo -e "  \033[1;36m[1]\033[0m 🌐 Open WebUI in Browser (Chrome / Firefox)"
+    echo -e "  \033[1;36m[2]\033[0m 🚀 Start / Revive Stack & Watchdog"
+    echo -e "  \033[1;36m[3]\033[0m 🛑 Stop All Daemons"
+    echo -e "  \033[1;36m[4]\033[0m ☁️  Cloudflare Tunnel & QR (Access from Laptop/PC)"
+    echo -e "  \033[1;36m[5]\033[0m ⚡ Hermes Interactive CLI Chat"
+    echo -e "  \033[1;36m[6]\033[0m 🩺 Run System Doctor & Diagnostics"
+    echo -e "  \033[1;36m[7]\033[0m 🔄 Update All Stack Components"
+    echo -e "  \033[1;36m[0]\033[0m 🚪 Exit to Termux Shell"
+    echo -e ""
+    echo -n -e "  \033[1;33mSelect option [0-7]: \033[0m"
+    read -r opt || break
+
+    case "$opt" in
+        1) hermes-web; sleep 1 ;;
+        2) hermes-start; read -r -p "Press [Enter] to continue..." ;;
+        3) hermes-stop; read -r -p "Press [Enter] to continue..." ;;
+        4) hermes-share; read -r -p "Press [Enter] to continue..." ;;
+        5) hermes-cli ;;
+        6) hermes-doctor; read -r -p "Press [Enter] to continue..." ;;
+        7) hermes-update; read -r -p "Press [Enter] to continue..." ;;
+        0) break ;;
+        *) sleep 1 ;;
+    esac
+done
+EOF
+chmod +x "$PREFIX/bin/hermes-menu"
+
+# Link 'hermes' command in Termux to the Interactive Menu
+ln -sf "$PREFIX/bin/hermes-menu" "$PREFIX/bin/hermes" 2>/dev/null || true
+
+# 10. Setup Termux:Boot (Auto-start on Android Phone Boot)
 mkdir -p "$HOME/.termux/boot"
 cat << 'EOF' > "$HOME/.termux/boot/start-hermes.sh"
 #!/data/data/com.termux/files/usr/bin/bash
@@ -383,7 +492,7 @@ $PREFIX/bin/hermes-start
 EOF
 chmod +x "$HOME/.termux/boot/start-hermes.sh"
 
-# 9. Setup Termux:Widget (Home-Screen 1-Tap Control Buttons)
+# 11. Setup Termux:Widget (Home-Screen 1-Tap Control Buttons)
 mkdir -p "$HOME/.shortcuts"
 cat << 'EOF' > "$HOME/.shortcuts/🚀 Start Mr Hermes"
 #!/data/data/com.termux/files/usr/bin/bash
@@ -397,12 +506,27 @@ $PREFIX/bin/hermes-stop
 EOF
 chmod +x "$HOME/.shortcuts/🛑 Stop Mr Hermes"
 
+cat << 'EOF' > "$HOME/.shortcuts/☁️ Hermes Tunnel"
+#!/data/data/com.termux/files/usr/bin/bash
+$PREFIX/bin/hermes-share
+EOF
+chmod +x "$HOME/.shortcuts/☁️ Hermes Tunnel"
+
 cat << 'EOF' > "$HOME/.shortcuts/🩺 Hermes Doctor"
 #!/data/data/com.termux/files/usr/bin/bash
 $PREFIX/bin/hermes-doctor
 read -p "Press enter to exit"
 EOF
 chmod +x "$HOME/.shortcuts/🩺 Hermes Doctor"
+
+# Add pleasant MOTD hint to Termux ~/.bashrc
+if ! grep -q "hermes-menu" "$HOME/.bashrc" 2>/dev/null; then
+    cat << 'BASHRC_EOF' >> "$HOME/.bashrc"
+
+# Mr Hermes Android AI Brain
+echo -e "\033[1;36m🤖 Mr Hermes Stack Ready!\033[0m Type \033[1;32mhermes\033[0m for Control Menu or \033[1;32mhermes-web\033[0m to open WebUI."
+BASHRC_EOF
+fi
 
 # Auto-start everything right now!
 echo -e "\n${CYAN}[*] Starting all stack daemons and auto-opening browser...${RESET}"
@@ -426,6 +550,8 @@ echo -e "${CYAN}🌐 WebUI Address : ${BOLD}${YELLOW}http://localhost:8787${RESE
 echo -e "${CYAN}🔀 9Router Proxy  : ${BOLD}${YELLOW}http://localhost:20128${RESET}"
 echo -e "${GREEN}${BOLD}══════════════════════════════════════════════════════════════════${RESET}"
 echo -e "${BOLD}Features Automatically Configured:${RESET}"
+echo -e "  🎮 ${CYAN}Interactive Menu${RESET}       : Type '${BOLD}hermes${RESET}' anytime for the Cyber Control Panel."
+echo -e "  ☁️  ${CYAN}Remote Cloud Tunnel${RESET}    : Run '${BOLD}hermes-share${RESET}' to get a secure link & QR code for laptop."
 echo -e "  ⚡ ${CYAN}Self-Healing Watchdog${RESET}  : Automatically revives dead processes."
 echo -e "  📲 ${CYAN}Termux:Boot Support${RESET}    : Auto-starts when your phone turns on."
 echo -e "  🔘 ${CYAN}Home-Screen Widgets${RESET}    : 1-Tap widgets ready in ~/.shortcuts/."
