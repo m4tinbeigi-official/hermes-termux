@@ -12,6 +12,18 @@ CYAN="\033[1;36m"
 YELLOW="\033[1;33m"
 RESET="\033[0m"
 
+TUNNEL_LOG="/tmp/hermes_tunnel.log"
+
+# Clean exit handler
+cleanup() {
+    echo -e "\n${YELLOW}[*] Shutting down remote Cloudflare tunnel...${RESET}"
+    pkill -f "cloudflared tunnel" 2>/dev/null || true
+    rm -f "$TUNNEL_LOG"
+    echo -e "${GREEN}[✓] Remote tunnel closed securely.${RESET}"
+    exit 0
+}
+trap cleanup INT TERM
+
 echo -e "${CYAN}${BOLD}"
 echo "╔══════════════════════════════════════════════════════════════╗"
 echo "║          ☁️ Mr Hermes Instant Remote Cloud Tunnel             ║"
@@ -44,7 +56,6 @@ if ! command -v cloudflared >/dev/null 2>&1; then
     chmod +x "$PREFIX/bin/cloudflared"
 fi
 
-TUNNEL_LOG="/tmp/hermes_tunnel.log"
 rm -f "$TUNNEL_LOG"
 
 echo -e "${CYAN}[*] Establishing encrypted Cloudflare tunnel to http://localhost:8787...${RESET}"
@@ -71,7 +82,7 @@ if [ -n "$URL" ]; then
     echo -e "   👉 ${BOLD}${CYAN}${URL}${RESET}"
     echo -e "${GREEN}${BOLD}══════════════════════════════════════════════════════════════════${RESET}"
     
-    # Generate terminal QR code if python or qrencode is available
+    # Generate terminal QR code if qrencode is available
     if command -v qrencode >/dev/null 2>&1; then
         echo -e "\n${BOLD}Scan this QR Code with your Laptop / Tablet / Phone:${RESET}\n"
         qrencode -t ANSIUTF8 "$URL"

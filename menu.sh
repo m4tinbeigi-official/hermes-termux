@@ -1,6 +1,6 @@
 #!/bin/bash
 # ==============================================================================
-# 🎮 Mr Hermes Cyberpunk Interactive Command Center for Termux
+# 🎮 Mr Hermes Cyberpunk Interactive Command Center for Termux (v3 Pro)
 # ==============================================================================
 
 set -euo pipefail
@@ -44,13 +44,15 @@ BANNER
     echo -e "  ${BOLD}${CYAN}[1]${RESET} 🌐 ${BOLD}Open WebUI in Browser${RESET} (Chrome / Firefox)"
     echo -e "  ${BOLD}${CYAN}[2]${RESET} 🚀 ${BOLD}Start / Revive Stack & Watchdog${RESET}"
     echo -e "  ${BOLD}${CYAN}[3]${RESET} 🛑 ${BOLD}Stop All Daemons${RESET}"
-    echo -e "  ${BOLD}${CYAN}[4]${RESET} ☁️  ${BOLD}Cloudflare Quick Tunnel${RESET} (Access from Laptop/PC)"
-    echo -e "  ${BOLD}${CYAN}[5]${RESET} ⚡ ${BOLD}Hermes Interactive CLI Chat${RESET}"
-    echo -e "  ${BOLD}${CYAN}[6]${RESET} 🩺 ${BOLD}Run System Doctor & Diagnostics${RESET}"
-    echo -e "  ${BOLD}${CYAN}[7]${RESET} 🔄 ${BOLD}Update All Stack Components${RESET}"
+    echo -e "  ${BOLD}${CYAN}[4]${RESET} 🔁 ${BOLD}Restart Entire Stack${RESET}"
+    echo -e "  ${BOLD}${CYAN}[5]${RESET} ☁️  ${BOLD}Cloudflare Quick Tunnel & QR${RESET} (Access from Laptop/PC)"
+    echo -e "  ${BOLD}${CYAN}[6]${RESET} ⚡ ${BOLD}Hermes Interactive CLI Chat${RESET}"
+    echo -e "  ${BOLD}${CYAN}[7]${RESET} 📋 ${BOLD}View Live Logs${RESET} (WebUI & 9Router)"
+    echo -e "  ${BOLD}${CYAN}[8]${RESET} 🩺 ${BOLD}Run System Doctor & Diagnostics${RESET}"
+    echo -e "  ${BOLD}${CYAN}[9]${RESET} 🔄 ${BOLD}Update All Stack Components${RESET}"
     echo -e "  ${BOLD}${CYAN}[0]${RESET} 🚪 ${BOLD}Exit to Termux Shell${RESET}"
     echo -e ""
-    echo -n -e "  ${BOLD}${YELLOW}Select an option [0-7]: ${RESET}"
+    echo -n -e "  ${BOLD}${YELLOW}Select an option [0-9]: ${RESET}"
     read -r opt || break
 
     case "$opt" in
@@ -80,6 +82,17 @@ BANNER
             read -r -p "Press [Enter] to continue..."
             ;;
         4)
+            echo -e "\n${YELLOW}[*] Restarting stack...${RESET}"
+            if command -v hermes-stop >/dev/null 2>&1; then
+                hermes-stop
+            fi
+            sleep 1
+            if command -v hermes-start >/dev/null 2>&1; then
+                hermes-start
+            fi
+            read -r -p "Press [Enter] to continue..."
+            ;;
+        5)
             echo -e "\n${CYAN}[*] Starting Cloudflare Tunnel...${RESET}"
             if [ -f "$(dirname "$0")/tunnel.sh" ]; then
                 bash "$(dirname "$0")/tunnel.sh"
@@ -88,20 +101,30 @@ BANNER
             fi
             read -r -p "Press [Enter] to continue..."
             ;;
-        5)
+        6)
             echo -e "\n${GREEN}[*] Entering Hermes CLI...${RESET}"
             if command -v hermes-cli >/dev/null 2>&1; then
                 hermes-cli
             fi
             ;;
-        6)
+        7)
+            echo -e "\n${CYAN}[*] Showing recent logs (WebUI & 9Router)...${RESET}"
+            if command -v proot-distro >/dev/null 2>&1; then
+                echo -e "\n${BOLD}=== WebUI Recent Logs (/root/webui.log) ===${RESET}"
+                proot-distro login ubuntu -- tail -n 15 /root/webui.log 2>/dev/null || echo "No webui logs yet."
+                echo -e "\n${BOLD}=== 9Router Recent Logs (/root/9router.log) ===${RESET}"
+                proot-distro login ubuntu -- tail -n 15 /root/9router.log 2>/dev/null || echo "No 9router logs yet."
+            fi
+            read -r -p "Press [Enter] to continue..."
+            ;;
+        8)
             echo -e "\n${CYAN}[*] Running Diagnostics...${RESET}"
             if command -v hermes-doctor >/dev/null 2>&1; then
                 hermes-doctor
             fi
             read -r -p "Press [Enter] to continue..."
             ;;
-        7)
+        9)
             echo -e "\n${YELLOW}[*] Updating Stack...${RESET}"
             if command -v hermes-update >/dev/null 2>&1; then
                 hermes-update
