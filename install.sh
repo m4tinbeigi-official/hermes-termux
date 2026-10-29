@@ -48,6 +48,39 @@ fi
 ARCH=$(uname -m)
 echo -e "${GREEN}[✓] Device Architecture: ${ARCH}${RESET}"
 
+# Architecture validation
+case "$ARCH" in
+    aarch64|arm64)
+        echo -e "${GREEN}[✓] 64-bit ARM architecture confirmed (Tier 1 Optimal).${RESET}"
+        ;;
+    x86_64|amd64)
+        echo -e "${GREEN}[✓] 64-bit x86 architecture confirmed.${RESET}"
+        ;;
+    armv7l|armhf|arm)
+        echo -e "${YELLOW}[!] Warning: 32-bit ARM detected ($ARCH). Modern 64-bit is strongly recommended for Node 20 and AI runtimes.${RESET}"
+        ;;
+    *)
+        echo -e "${YELLOW}[!] Notice: Architecture $ARCH detected.${RESET}"
+        ;;
+esac
+
+# Check Available Disk Space (At least 1.5 GB recommended)
+FREE_KB=$(df -k "$PREFIX" 2>/dev/null | awk 'NR==2 {print $4}' || echo "9999999")
+if [ "$FREE_KB" -lt 1500000 ] 2>/dev/null; then
+    echo -e "${YELLOW}[!] Warning: Less than 1.5 GB free storage detected. Ubuntu RootFS and AI packages require ~1.5 - 2 GB.${RESET}"
+else
+    echo -e "${GREEN}[✓] Storage space verified (Sufficient free capacity).${RESET}"
+fi
+
+# Detect legacy Google Play Store Termux build
+if [ -f "/data/data/com.termux/files/usr/etc/apt/sources.list" ]; then
+    if grep -q "bintray" "/data/data/com.termux/files/usr/etc/apt/sources.list" 2>/dev/null; then
+        echo -e "${RED}[!] Critical: You are using the deprecated Google Play Store Termux build!${RESET}"
+        echo -e "${YELLOW}[*] Auto-repairing Termux repository sources to grimler.se / official mirrors...${RESET}"
+        sed -i 's|.*bintray.*|deb https://packages.termux.dev/apt/termux-main stable main|g' /data/data/com.termux/files/usr/etc/apt/sources.list 2>/dev/null || true
+    fi
+fi
+
 echo -e "\n${BLUE}[2/6] 📦 Updating Termux Base Packages & Tools...${RESET}"
 export DEBIAN_FRONTEND=noninteractive
 if command -v pkg >/dev/null 2>&1; then
